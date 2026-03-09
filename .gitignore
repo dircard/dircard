@@ -1,0 +1,16 @@
+.vscode
+
+# build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# modules
+vendor/
+
+# debug
+__debug_bin*
