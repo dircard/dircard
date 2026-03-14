@@ -40,7 +40,10 @@ func FindFilePath(startDir string, depthLimit int) (string, error) {
 				continue
 			}
 			if c.RequireSection {
-				ok, _ := hasDircardSection(p)
+				ok, err := hasDircardSection(p)
+				if err != nil {
+					return "", err
+				}
 				if !ok {
 					continue
 				}
