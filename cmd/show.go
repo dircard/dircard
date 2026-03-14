@@ -87,6 +87,7 @@ var showCmd = &cobra.Command{
 		if jsonOutput {
 			b, err := createJSONOutput(dircardFile, lines)
 			if err != nil {
+				fmt.Fprintln(os.Stderr, "error: failed to create JSON output:", err)
 				return
 			}
 			fmt.Println(b)
