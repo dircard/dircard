@@ -85,7 +85,7 @@ var showCmd = &cobra.Command{
 
 		jsonOutput, _ := cmd.Flags().GetBool("json")
 		if jsonOutput {
-			b, err := createJsonOutput(dircardFile, lines)
+			b, err := createJSONOutput(dircardFile, lines)
 			if err != nil {
 				return
 			}
@@ -116,7 +116,7 @@ func init() {
 	showCmd.Flags().BoolP("json", "j", false, "Output in JSON format")
 }
 
-func createJsonOutput(dircardFile string, lines []string) (string, error) {
+func createJSONOutput(dircardFile string, lines []string) (string, error) {
 	today := time.Now().Format("2006-01-02 15:04:05")
 	content := strings.Join(lines, "\n")
 	data := Dircard{
