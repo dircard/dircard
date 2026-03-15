@@ -11,6 +11,8 @@ import (
 
 const HookComment = "# ---- dircard hook ----"
 
+var hookBlockRe = regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(HookComment) + `\r?\n[^\r\n]*\r?\n?`)
+
 func AppendHookToFile(path, hook string, force bool) (bool, error) {
 	data, err := os.ReadFile(path)
 	if err != nil && !os.IsNotExist(err) {
@@ -70,8 +72,7 @@ func appendHook(base, hook string) string {
 }
 
 func stripHookBlock(content string) string {
-	re := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(HookComment) + `\r?\n[^\r\n]*\r?\n?`)
-	return re.ReplaceAllString(content, "")
+	return hookBlockRe.ReplaceAllString(content, "")
 }
 
 func getDocumentsDir() string {
