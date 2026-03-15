@@ -63,7 +63,11 @@ func init() {
 }
 
 func setupBash(force bool) {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error: failed to get home directory:", err)
+		os.Exit(1)
+	}
 	rcPath := filepath.Join(home, ".bashrc")
 	if added, err := shell.AppendHookToFile(rcPath, bash, force); err != nil {
 		fmt.Fprintln(os.Stderr, "error: failed to update .bashrc:", err)
@@ -78,7 +82,11 @@ func setupBash(force bool) {
 }
 
 func setupZsh(force bool) {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error: failed to get home directory:", err)
+		os.Exit(1)
+	}
 	rcPath := filepath.Join(home, ".zshrc")
 	if added, err := shell.AppendHookToFile(rcPath, zsh, force); err != nil {
 		fmt.Fprintln(os.Stderr, "error: failed to update .zshrc:", err)
@@ -100,7 +108,10 @@ func setupPowerShell(force bool) {
 	}
 
 	for _, p := range profiles {
-		os.MkdirAll(filepath.Dir(p), 0755)
+		if err := os.MkdirAll(filepath.Dir(p), 0755); err != nil {
+			fmt.Fprintln(os.Stderr, "error: failed to create directory:", err)
+			os.Exit(1)
+		}
 		if added, err := shell.AppendHookToFile(p, pwsh, force); err != nil {
 			fmt.Fprintln(os.Stderr, "error: failed to update PowerShell profile:", err)
 			os.Exit(1)

@@ -97,7 +97,11 @@ func confirmUninstall(target string) (bool, error) {
 }
 
 func teardownBash() {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error: failed to get home directory:", err)
+		os.Exit(1)
+	}
 	rcPath := filepath.Join(home, ".bashrc")
 	if removed, err := shell.RemoveHookFromFile(rcPath); err != nil {
 		fmt.Fprintln(os.Stderr, "error: failed to update .bashrc:", err)
@@ -111,7 +115,11 @@ func teardownBash() {
 }
 
 func teardownZsh() {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error: failed to get home directory:", err)
+		os.Exit(1)
+	}
 	rcPath := filepath.Join(home, ".zshrc")
 	if removed, err := shell.RemoveHookFromFile(rcPath); err != nil {
 		fmt.Fprintln(os.Stderr, "error: failed to update .zshrc:", err)
