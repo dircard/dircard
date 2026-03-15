@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -20,7 +18,8 @@ _dircard_hook() {
 case "$PROMPT_COMMAND" in
   *_dircard_hook*) ;;
   *) PROMPT_COMMAND="_dircard_hook${PROMPT_COMMAND:+;$PROMPT_COMMAND}" ;;
-esac`
+esac
+`
 
 const zshHook = `_dircard_hook() {
   command dircard show 2>/dev/null
@@ -28,7 +27,8 @@ const zshHook = `_dircard_hook() {
 if ! (( ${chpwd_functions[(I)_dircard_hook]} )); then
   chpwd_functions+=(_dircard_hook)
 fi
-_dircard_hook`
+_dircard_hook
+`
 
 const pwshHook = `$global:_dircardLastDir = ""
 function global:prompt {
@@ -39,33 +39,26 @@ function global:prompt {
         $global:_dircardLastDir = $cwd
     }
     "PS $cwd> "
-}`
+}
+`
 
 var hookCmd = &cobra.Command{
 	Use:   "hook [bash|zsh|pwsh]",
 	Short: "Output the dircard shell hook",
-	Long: `Output the dircard shell hook for the specified shell.
-
-If no shell is specified, it will try to detect the current shell.`,
-	Args: cobra.MaximumNArgs(1),
+	Long:  `Output the dircard shell hook for the specified shell. This command is intended to be called from your shell configuration files (e.g. .bashrc, .zshrc, profile.ps1) to enable dircard integration.`,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		shell := ""
-
-		if len(args) > 0 {
-			shell = strings.ToLower(args[0])
-		} else {
-			shell = detectShell()
-		}
+		shell := strings.ToLower(args[0])
 
 		switch shell {
 		case "bash":
 			fmt.Print(bashHook)
 		case "zsh":
 			fmt.Print(zshHook)
-		case "powershell", "pwsh":
+		case "pwsh":
 			fmt.Print(pwshHook)
 		default:
-			fmt.Fprintf(os.Stderr, "error: unsupported shell: %s\n", shell)
+			fmt.Fprintf(os.Stderr, "Unsupported shell: %s\n", shell)
 			fmt.Fprintln(os.Stderr, "Supported shells: bash, zsh, pwsh")
 			os.Exit(1)
 		}
@@ -74,36 +67,7 @@ If no shell is specified, it will try to detect the current shell.`,
 
 func init() {
 	rootCmd.AddCommand(hookCmd)
+	// Hidden because this command is called from shell configuration files (e.g. .bashrc, .zshrc, profile.ps1),
+	// not invoked directly by users.
 	hookCmd.Hidden = true
-}
-
-func detectShell() string {
-	// Git Bash / MSYS
-	if os.Getenv("MSYSTEM") != "" {
-		return "bash"
-	}
-
-	// PowerShell
-	if os.Getenv("PSModulePath") != "" {
-		return "pwsh"
-	}
-
-	// Unix-like shells
-	if runtime.GOOS != "windows" {
-		if shell := os.Getenv("SHELL"); shell != "" {
-			name := strings.ToLower(filepath.Base(shell))
-
-			switch name {
-			case "bash", "zsh":
-				return name
-			}
-		}
-	}
-
-	// Windows fallback
-	if runtime.GOOS == "windows" {
-		return "pwsh"
-	}
-
-	return ""
 }
