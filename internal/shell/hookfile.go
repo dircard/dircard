@@ -36,6 +36,31 @@ func AppendHookToFile(path, hook string, force bool) (bool, error) {
 	return true, nil
 }
 
+func RemoveHookFromFile(path string) (bool, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	current := string(data)
+	if !strings.Contains(current, HookComment) {
+		return false, nil
+	}
+
+	updated := strings.TrimRight(stripHookBlock(current), "\r\n")
+	if updated != "" {
+		updated += "\n"
+	}
+
+	if err := os.WriteFile(path, []byte(updated), 0644); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func appendHook(base, hook string) string {
 	trimmed := strings.TrimRight(base, "\r\n")
 	if trimmed == "" {
