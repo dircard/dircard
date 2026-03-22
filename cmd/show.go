@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dircard/dircard/internal/config"
 	"github.com/dircard/dircard/internal/fileio"
 	"github.com/dircard/dircard/internal/finder"
 	"github.com/spf13/cobra"
@@ -54,7 +55,9 @@ var showCmd = &cobra.Command{
 			return
 		}
 
-		dircardFile, err := finder.FindFilePath(cwd, searchDepth)
+		cfg := config.Load()
+		sortedCandidates := finder.ReorderCandidates(cfg.CandidateOrder)
+		dircardFile, err := finder.FindFilePath(cwd, searchDepth, sortedCandidates)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error: .dircard file not found in current or parent directories")
 			return
