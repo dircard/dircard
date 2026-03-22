@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -15,14 +16,48 @@ type FileCandidate struct {
 }
 
 var Candidates = []FileCandidate{
-	{Name: ".dircard"},
-	{Name: ".dircard.md"},
-	{Name: "README", CurrentDirOnly: true, RequireSection: true},
-	{Name: "README.md", CurrentDirOnly: true, RequireSection: true},
 	{Name: ".dircard.local", CurrentDirOnly: true},
+	{Name: ".dircard.md"},
+	{Name: ".dircard"},
+	{Name: "README.md", CurrentDirOnly: true, RequireSection: true},
+	{Name: "README", CurrentDirOnly: true, RequireSection: true},
 }
 
-func FindFilePath(startDir string, depthLimit int) (string, error) {
+func ReorderCandidates(order []string) []FileCandidate {
+	if len(order) == 0 {
+		return Candidates
+	}
+
+	priority := make(map[string]int, len(order))
+	for i, name := range order {
+		priority[name] = i
+	}
+
+	result := append([]FileCandidate(nil), Candidates...)
+
+	sort.SliceStable(result, func(i, j int) bool {
+		pi, iok := priority[result[i].Name]
+		pj, jok := priority[result[j].Name]
+
+		if iok && jok {
+			return pi < pj
+		}
+		if iok {
+			return true
+		}
+		if jok {
+			return false
+		}
+		return false
+	})
+
+	return result
+}
+
+func FindFilePath(startDir string, depthLimit int, candidates []FileCandidate) (string, error) {
+	if len(candidates) == 0 {
+		candidates = Candidates
+	}
 	dir := startDir
 	depth := 0
 
@@ -31,7 +66,7 @@ func FindFilePath(startDir string, depthLimit int) (string, error) {
 			break
 		}
 
-		for _, c := range Candidates {
+		for _, c := range candidates {
 			if c.CurrentDirOnly && depth > 0 {
 				continue
 			}
