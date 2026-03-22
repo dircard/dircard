@@ -123,3 +123,11 @@ func hasDircardSection(path string) (bool, error) {
 	}
 	return false, scanner.Err()
 }
+
+func Names(candidates []FileCandidate) []string {
+	names := make([]string, len(candidates))
+	for i, c := range candidates {
+		names[i] = c.Name
+	}
+	return names
+}
