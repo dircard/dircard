@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/dircard/dircard/internal/finder"
+	"github.com/dircard/dircard/internal/marker"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -18,23 +19,20 @@ var initCmd = &cobra.Command{
 		force, _ := cmd.Flags().GetBool("force")
 		path := resolveInitPath(cmd)
 
-		if !force {
-			if _, err := os.Stat(path); err == nil {
-				fmt.Fprintf(os.Stderr, "error: %s already exists. Use --force to overwrite.\n", path)
-				os.Exit(1)
-			}
-		}
-
-		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-			fmt.Fprintln(os.Stderr, "error: failed to create directory:", err)
+		action, err := marker.CreateOrUpdate(path, force)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "error:", err)
 			os.Exit(1)
 		}
 
-		if err := os.WriteFile(path, initialContent(path), 0644); err != nil {
-			fmt.Fprintln(os.Stderr, "error: failed to create file:", err)
-			os.Exit(1)
+		switch action {
+		case marker.ActionCreated:
+			fmt.Printf("Created %s\n", path)
+		case marker.ActionAppended:
+			fmt.Printf("Appended dircard markers to %s\n", path)
+		case marker.ActionUpdated:
+			fmt.Printf("Updated %s\n", path)
 		}
-		fmt.Printf("Created %s\n", path)
 	},
 }
 
@@ -42,7 +40,31 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	initCmd.Flags().StringP("path", "p", "", "Target directory path")
 	initCmd.Flags().BoolP("skip", "k", false, "Skip interactive selection and create .dircard directly")
-	initCmd.Flags().BoolP("force", "f", false, "Overwrite existing .dircard file if it exists")
+	initCmd.Flags().BoolP("force", "f", false, "Overwrite existing file (or append markers if target is README)")
+}
+
+// Path resolution helpers
+
+func resolveTargetDir(cmd *cobra.Command) string {
+	targetDir, _ := cmd.Flags().GetString("path")
+	if targetDir == "" {
+		return "."
+	}
+
+	if info, err := os.Stat(targetDir); err == nil {
+		if info.IsDir() {
+			return targetDir
+		}
+		fmt.Fprintln(os.Stderr, "error: --path must be a directory path")
+		os.Exit(1)
+	}
+
+	if filepath.Ext(filepath.Base(targetDir)) != "" {
+		fmt.Fprintln(os.Stderr, "error: --path must be a directory path")
+		os.Exit(1)
+	}
+
+	return targetDir
 }
 
 func resolveInitPath(cmd *cobra.Command) string {
@@ -70,28 +92,6 @@ func resolveInitPath(cmd *cobra.Command) string {
 	return filepath.Join(targetDir, selected)
 }
 
-func resolveTargetDir(cmd *cobra.Command) string {
-	targetDir, _ := cmd.Flags().GetString("path")
-	if targetDir == "" {
-		return "."
-	}
-
-	if info, err := os.Stat(targetDir); err == nil {
-		if info.IsDir() {
-			return targetDir
-		}
-		fmt.Fprintln(os.Stderr, "error: --path must be a directory path")
-		os.Exit(1)
-	}
-
-	if filepath.Ext(filepath.Base(targetDir)) != "" {
-		fmt.Fprintln(os.Stderr, "error: --path must be a directory path")
-		os.Exit(1)
-	}
-
-	return targetDir
-}
-
 func isInteractiveTerminal() bool {
 	fi, err := os.Stdin.Stat()
 	if err != nil {
@@ -111,12 +111,4 @@ func selectFilePath(candidates []finder.FileCandidate) (string, error) {
 	}
 	_, selected, err := sel.Run()
 	return selected, err
-}
-
-func initialContent(path string) []byte {
-	fileName := filepath.Base(path)
-	if fileName == "README" || fileName == "README.md" {
-		return []byte("# README\n\n## dircard\n\nAdd notes for this directory.\n")
-	}
-	return []byte("# " + fileName + "\n\nAdd notes for this directory.\n")
 }
