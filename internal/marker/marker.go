@@ -66,9 +66,9 @@ func CreateOrUpdate(path string, force bool) (Action, error) {
 	if _, err := os.Stat(path); err == nil {
 		if !force {
 			if IsReadme(path) {
-				return "", fmt.Errorf("%s already exists, use -f to append markers", path)
+				return "", fmt.Errorf("%s already exists, use --force to append markers", path)
 			}
-			return "", fmt.Errorf("%s already exists, use -f to overwrite", path)
+			return "", fmt.Errorf("%s already exists, use --force to overwrite", path)
 		}
 		if IsReadme(path) {
 			if err := AppendIfNeeded(path); err != nil {
