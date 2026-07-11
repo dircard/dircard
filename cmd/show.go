@@ -26,13 +26,6 @@ type Dircard struct {
 	LineCount int    `json:"line_count"`
 }
 
-const (
-	defaultFileSize    = 10
-	defaultLineStart   = 0
-	defaultLineCount   = 10
-	defaultSearchDepth = 5
-)
-
 var fileSize int
 var lineStart int
 var lineCount int
@@ -108,15 +101,16 @@ var showCmd = &cobra.Command{
 }
 
 func init() {
+	cfg := config.Load()
 	rootCmd.AddCommand(showCmd)
 	showCmd.Flags().BoolP("quiet", "q", false, "Suppress all output (quiet mode)")
 	showCmd.Flags().BoolP("path", "p", false, "Show the path of the .dircard file")
 	showCmd.Flags().BoolP("full", "f", false, "Show the full contents of the .dircard file")
-	showCmd.Flags().IntVarP(&searchDepth, "depth", "d", defaultSearchDepth, "Limit the depth of parent directory search (0=only current directory)")
+	showCmd.Flags().IntVarP(&searchDepth, "depth", "d", *cfg.Depth, "Limit the depth of parent directory search (0=only current directory)")
 	showCmd.Flags().StringVarP(&section, "section", "e", "", "Show only the specified section")
-	showCmd.Flags().IntVarP(&fileSize, "size", "z", defaultFileSize, "Maximum file size to show in KB")
-	showCmd.Flags().IntVarP(&lineStart, "start", "s", defaultLineStart, "Line number to start showing from (0=beginning)")
-	showCmd.Flags().IntVarP(&lineCount, "lines", "n", defaultLineCount, "Number of lines to show (0=all)")
+	showCmd.Flags().IntVarP(&fileSize, "size", "z", cfg.FileSizeKB, "Maximum file size to show in KB")
+	showCmd.Flags().IntVarP(&lineStart, "start", "s", *cfg.LineStart, "Line number to start showing from (0=beginning)")
+	showCmd.Flags().IntVarP(&lineCount, "lines", "n", *cfg.LineCount, "Number of lines to show (0=all)")
 	showCmd.Flags().BoolP("json", "j", false, "Output in JSON format")
 }
 
