@@ -13,6 +13,7 @@ import (
 	"github.com/dircard/dircard/internal/config"
 	"github.com/dircard/dircard/internal/fileio"
 	"github.com/dircard/dircard/internal/finder"
+	"github.com/dircard/dircard/internal/renderer"
 	"github.com/spf13/cobra"
 )
 
@@ -90,9 +91,8 @@ var showCmd = &cobra.Command{
 			return
 		}
 
-		for _, line := range lines {
-			fmt.Println(line)
-		}
+		result := renderer.ParseMarkdown(strings.Join(lines, "\n"))
+		fmt.Println(result)
 
 		if !full && len(lines) == lineCount {
 			fmt.Println("... (run `dircard show --full` to see more)")
