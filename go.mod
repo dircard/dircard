@@ -6,6 +6,7 @@ require (
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-runewidth v0.0.24
 	github.com/spf13/cobra v1.10.2
+	golang.org/x/mod v0.38.0
 	golang.org/x/term v0.45.0
 	gopkg.in/yaml.v3 v3.0.1
 )
