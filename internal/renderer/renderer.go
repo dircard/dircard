@@ -279,6 +279,8 @@ func (r *ANSIRenderer) renderBlockquote(w util.BufWriter, source []byte, node as
 	return ast.WalkContinue, nil
 }
 
+var getTerminalWidthFunc = getTerminalWidth
+
 func getTerminalWidth() int {
 	width, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
@@ -289,7 +291,7 @@ func getTerminalWidth() int {
 
 func (r *ANSIRenderer) renderCodeLines(w util.BufWriter, source []byte, node ast.Node) {
 	lines := node.Lines()
-	terminalWidth := getTerminalWidth()
+	terminalWidth := getTerminalWidthFunc()
 	inBlockComment := false
 	for i := 0; i < lines.Len(); i++ {
 		line := lines.At(i)

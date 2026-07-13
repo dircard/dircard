@@ -24,6 +24,10 @@ func TestRenderMarkdownRendersInlineCodeWithDedicatedStyle(t *testing.T) {
 }
 
 func TestRenderMarkdownResetsCodeBlockStyleBeforeBlankLine(t *testing.T) {
+	originalFunc := getTerminalWidthFunc
+	getTerminalWidthFunc = func() int { return 80 }
+	defer func() { getTerminalWidthFunc = originalFunc }()
+
 	got := ParseMarkdown("```go\nfmt.Println(\"x\")\n```\n\nnext")
 	want := codeBlockLine("fmt.Println(\"x\")") + "\nnext\n"
 
@@ -32,7 +36,11 @@ func TestRenderMarkdownResetsCodeBlockStyleBeforeBlankLine(t *testing.T) {
 	}
 }
 
-func TestRenderMarkdownPadsCodeBlockBackgroundToMinWidth(t *testing.T) {
+func TestRenderMarkdownPadsCodeBlockBackgroundToTerminalWidth(t *testing.T) {
+	originalFunc := getTerminalWidthFunc
+	getTerminalWidthFunc = func() int { return 80 }
+	defer func() { getTerminalWidthFunc = originalFunc }()
+
 	got := ParseMarkdown("```go\na\nlong\n```")
 	want := codeBlockLine("a") + codeBlockLine("long")
 
@@ -42,6 +50,10 @@ func TestRenderMarkdownPadsCodeBlockBackgroundToMinWidth(t *testing.T) {
 }
 
 func TestRenderMarkdownRendersCodeBlockCommentsInGreen(t *testing.T) {
+	originalFunc := getTerminalWidthFunc
+	getTerminalWidthFunc = func() int { return 80 }
+	defer func() { getTerminalWidthFunc = originalFunc }()
+
 	got := ParseMarkdown("```go\nvalue := 1 // keep comment\n/* block */ value\n```")
 	want := renderedCodeBlockLine("value := 1 "+codeCommentForeground+"// keep comment", "value := 1 // keep comment") +
 		renderedCodeBlockLine(codeCommentForeground+"/* block */"+codeBlockForeground+" value", "/* block */ value")
@@ -52,6 +64,10 @@ func TestRenderMarkdownRendersCodeBlockCommentsInGreen(t *testing.T) {
 }
 
 func TestRenderMarkdownRemovesCarriageReturnsFromCodeBlockLines(t *testing.T) {
+	originalFunc := getTerminalWidthFunc
+	getTerminalWidthFunc = func() int { return 80 }
+	defer func() { getTerminalWidthFunc = originalFunc }()
+
 	got := ParseMarkdown("```go\r\nfmt.Println(\"x\")\r\n```\r\n")
 	want := codeBlockLine("fmt.Println(\"x\")")
 
@@ -75,6 +91,12 @@ func codeBlockLine(value string) string {
 }
 
 func renderedCodeBlockLine(rendered, visible string) string {
+	terminalWidth := 80
+	currentWidth := 2 + len([]rune(visible))
+	padding := terminalWidth - currentWidth
+	if padding < 0 {
+		padding = 0
+	}
 	return codeBlockBackground + codeBlockForeground + "  " + rendered +
-		strings.Repeat(" ", codeBlockMinWidth-len([]rune(visible))) + ansiReset + "\n"
+		strings.Repeat(" ", padding) + ansiReset + "\n"
 }
