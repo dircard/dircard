@@ -3,12 +3,14 @@ package renderer
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
+	"golang.org/x/term"
 )
 
 const (
@@ -277,25 +279,32 @@ func (r *ANSIRenderer) renderBlockquote(w util.BufWriter, source []byte, node as
 	return ast.WalkContinue, nil
 }
 
+func getTerminalWidth() int {
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		return 80 // デフォルト幅
+	}
+	return width
+}
+
 func (r *ANSIRenderer) renderCodeLines(w util.BufWriter, source []byte, node ast.Node) {
 	lines := node.Lines()
-	values := make([][]byte, 0, lines.Len())
-	maxWidth := 0
+	terminalWidth := getTerminalWidth()
+	inBlockComment := false
 	for i := 0; i < lines.Len(); i++ {
 		line := lines.At(i)
 		value := line.Value(source)
 		value = trimLineBreak(value)
-		values = append(values, value)
-		maxWidth = max(maxWidth, len([]rune(string(value))))
-	}
-	blockWidth := max(maxWidth, codeBlockMinWidth)
-	inBlockComment := false
-	for _, value := range values {
 		w.WriteString(codeBlockBackground)
 		w.WriteString(codeBlockForeground)
 		w.WriteString("  ")
 		r.renderCodeLine(w, value, &inBlockComment)
-		w.WriteString(strings.Repeat(" ", blockWidth-len([]rune(string(value)))))
+		// ターミナルの端までパディング
+		currentWidth := 2 + len([]rune(string(value)))
+		padding := terminalWidth - currentWidth
+		if padding > 0 {
+			w.WriteString(strings.Repeat(" ", padding))
+		}
 		w.WriteString(ansiReset)
 		w.WriteByte('\n')
 	}
