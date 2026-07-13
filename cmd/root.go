@@ -5,8 +5,11 @@ package cmd
 
 import (
 	"os"
+	"runtime/debug"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/mod/module"
+	"golang.org/x/mod/semver"
 )
 
 var version = "dev"
@@ -28,5 +31,22 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Version = version
+	rootCmd.Version = buildVersion()
+}
+
+func buildVersion() string {
+	if version != "dev" {
+		return version
+	}
+
+	info, ok := debug.ReadBuildInfo()
+	if ok && isTaggedVersion(info.Main.Version) {
+		return info.Main.Version
+	}
+
+	return version
+}
+
+func isTaggedVersion(v string) bool {
+	return semver.IsValid(v) && !module.IsPseudoVersion(v)
 }
