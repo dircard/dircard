@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mattn/go-runewidth"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
@@ -21,7 +22,6 @@ const (
 	ansiBlue              = "\x1b[34m"
 	ansiUnderline         = "\x1b[4m"
 	ansiDim               = "\x1b[2m"
-	codeBlockMinWidth     = 72
 	codeBlockBackground   = "\x1b[48;5;237m"
 	codeBlockForeground   = "\x1b[38;5;252m"
 	codeCommentForeground = "\x1b[38;5;114m"
@@ -284,7 +284,7 @@ var getTerminalWidthFunc = getTerminalWidth
 func getTerminalWidth() int {
 	width, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
-		return 80 // デフォルト幅
+		return 80
 	}
 	return width
 }
@@ -301,8 +301,7 @@ func (r *ANSIRenderer) renderCodeLines(w util.BufWriter, source []byte, node ast
 		w.WriteString(codeBlockForeground)
 		w.WriteString("  ")
 		r.renderCodeLine(w, value, &inBlockComment)
-		// ターミナルの端までパディング
-		currentWidth := 2 + len([]rune(string(value)))
+		currentWidth := 2 + runewidth.StringWidth(string(value))
 		padding := terminalWidth - currentWidth
 		if padding > 0 {
 			w.WriteString(strings.Repeat(" ", padding))

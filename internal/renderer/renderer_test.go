@@ -3,6 +3,8 @@ package renderer
 import (
 	"strings"
 	"testing"
+
+	"github.com/mattn/go-runewidth"
 )
 
 func TestRenderMarkdownKeepsBlankLineBetweenParagraphs(t *testing.T) {
@@ -43,6 +45,23 @@ func TestRenderMarkdownPadsCodeBlockBackgroundToTerminalWidth(t *testing.T) {
 
 	got := ParseMarkdown("```go\na\nlong\n```")
 	want := codeBlockLine("a") + codeBlockLine("long")
+
+	if got != want {
+		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
+	}
+}
+
+func TestRenderMarkdownPadsWideCodeBlockCommentsToDisplayWidth(t *testing.T) {
+	originalFunc := getTerminalWidthFunc
+	getTerminalWidthFunc = func() int { return 20 }
+	defer func() { getTerminalWidthFunc = originalFunc }()
+
+	got := ParseMarkdown("```sh\nlong #コメント\n```")
+	want := renderedCodeBlockLineWithWidth(
+		"long "+codeCommentForeground+"#コメント",
+		"long #コメント",
+		20,
+	)
 
 	if got != want {
 		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
@@ -91,8 +110,11 @@ func codeBlockLine(value string) string {
 }
 
 func renderedCodeBlockLine(rendered, visible string) string {
-	terminalWidth := 80
-	currentWidth := 2 + len([]rune(visible))
+	return renderedCodeBlockLineWithWidth(rendered, visible, 80)
+}
+
+func renderedCodeBlockLineWithWidth(rendered, visible string, terminalWidth int) string {
+	currentWidth := 2 + runewidth.StringWidth(visible)
 	padding := terminalWidth - currentWidth
 	if padding < 0 {
 		padding = 0
