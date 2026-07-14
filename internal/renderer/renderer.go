@@ -436,5 +436,5 @@ func trimTrailingNewlines(result string) string {
 	if result == "" {
 		return result
 	}
-	return strings.TrimRight(result, "\n") + "\n"
+	return strings.TrimRight(result, "\n")
 }

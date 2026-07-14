@@ -9,7 +9,7 @@ import (
 
 func TestRenderMarkdownKeepsBlankLineBetweenParagraphs(t *testing.T) {
 	got := ParseMarkdown("first\n\nsecond")
-	want := "first\n\nsecond\n"
+	want := "first\n\nsecond"
 
 	if got != want {
 		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
@@ -18,7 +18,7 @@ func TestRenderMarkdownKeepsBlankLineBetweenParagraphs(t *testing.T) {
 
 func TestRenderMarkdownRendersInlineCodeWithDedicatedStyle(t *testing.T) {
 	got := ParseMarkdown("Use `value` here")
-	want := "Use " + inlineCodeBackground + inlineCodeForeground + " value " + ansiReset + " here\n"
+	want := "Use " + inlineCodeBackground + inlineCodeForeground + " value " + ansiReset + " here"
 
 	if got != want {
 		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
@@ -31,7 +31,7 @@ func TestRenderMarkdownResetsCodeBlockStyleBeforeBlankLine(t *testing.T) {
 	defer func() { getTerminalWidthFunc = originalFunc }()
 
 	got := ParseMarkdown("```go\nfmt.Println(\"x\")\n```\n\nnext")
-	want := codeBlockLine("fmt.Println(\"x\")") + "\nnext\n"
+	want := codeBlockLine("fmt.Println(\"x\")") + "\n\nnext"
 
 	if got != want {
 		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
@@ -44,7 +44,7 @@ func TestRenderMarkdownPadsCodeBlockBackgroundToTerminalWidth(t *testing.T) {
 	defer func() { getTerminalWidthFunc = originalFunc }()
 
 	got := ParseMarkdown("```go\na\nlong\n```")
-	want := codeBlockLine("a") + codeBlockLine("long")
+	want := codeBlockLine("a") + "\n" + codeBlockLine("long")
 
 	if got != want {
 		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
@@ -75,7 +75,7 @@ func TestRenderMarkdownRendersCodeBlockCommentsInGreen(t *testing.T) {
 
 	got := ParseMarkdown("```go\nvalue := 1 // keep comment\n/* block */ value\n```")
 	want := renderedCodeBlockLine("value := 1 "+codeCommentForeground+"// keep comment", "value := 1 // keep comment") +
-		renderedCodeBlockLine(codeCommentForeground+"/* block */"+codeBlockForeground+" value", "/* block */ value")
+		"\n" + renderedCodeBlockLine(codeCommentForeground+"/* block */"+codeBlockForeground+" value", "/* block */ value")
 
 	if got != want {
 		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
@@ -98,7 +98,7 @@ func TestRenderMarkdownRemovesCarriageReturnsFromCodeBlockLines(t *testing.T) {
 func TestRenderMarkdownIncrementsOrderedListNumbers(t *testing.T) {
 	got := ParseMarkdown("1. one\n2. two")
 	want := "1. " + ansiYellow + "one" + ansiReset + "\n" +
-		"2. " + ansiYellow + "two" + ansiReset + "\n"
+		"2. " + ansiYellow + "two" + ansiReset
 
 	if got != want {
 		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
@@ -120,5 +120,5 @@ func renderedCodeBlockLineWithWidth(rendered, visible string, terminalWidth int)
 		padding = 0
 	}
 	return codeBlockBackground + codeBlockForeground + "  " + rendered +
-		strings.Repeat(" ", padding) + ansiReset + "\n"
+		strings.Repeat(" ", padding) + ansiReset
 }

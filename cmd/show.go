@@ -92,10 +92,10 @@ var showCmd = &cobra.Command{
 		}
 
 		result := renderer.ParseMarkdown(strings.Join(lines, "\n"))
-		fmt.Println(result)
+		fmt.Print(result)
 
 		if !full && len(lines) == lineCount {
-			fmt.Println("... (run `dircard show --full` to see more)")
+			fmt.Print("\n... (run `dircard show --full` to see more)")
 		}
 	},
 }
