@@ -25,6 +25,16 @@ func TestRenderMarkdownRendersInlineCodeWithDedicatedStyle(t *testing.T) {
 	}
 }
 
+func TestRenderMarkdownRestoresListStyleAfterInlineCode(t *testing.T) {
+	got := ParseMarkdown("- before `value` after")
+	want := "・ " + ansiYellow + "before " + inlineCodeBackground + inlineCodeForeground +
+		" value " + ansiReset + ansiYellow + " after" + ansiReset
+
+	if got != want {
+		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
+	}
+}
+
 func TestRenderMarkdownResetsCodeBlockStyleBeforeBlankLine(t *testing.T) {
 	originalFunc := getTerminalWidthFunc
 	getTerminalWidthFunc = func() int { return 80 }

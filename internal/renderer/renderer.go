@@ -179,6 +179,7 @@ func (r *ANSIRenderer) renderCodeSpan(w util.BufWriter, source []byte, node ast.
 		}
 		w.WriteString(" ") // Add a space
 		w.WriteString(ansiReset)
+		r.restoreInlineContextStyle(w)
 		return ast.WalkSkipChildren, nil
 	}
 	return ast.WalkContinue, nil
@@ -213,6 +214,7 @@ func (r *ANSIRenderer) renderEmphasis(w util.BufWriter, source []byte, node ast.
 		}
 	} else {
 		w.WriteString(ansiReset)
+		r.restoreInlineContextStyle(w)
 	}
 	return ast.WalkContinue, nil
 }
@@ -223,6 +225,7 @@ func (r *ANSIRenderer) renderLink(w util.BufWriter, source []byte, node ast.Node
 		w.WriteString(ansiBlue)
 	} else {
 		w.WriteString(ansiReset)
+		r.restoreInlineContextStyle(w)
 		link := node.(*ast.Link)
 		w.WriteString(" (")
 		w.Write(link.Destination)
@@ -238,6 +241,7 @@ func (r *ANSIRenderer) renderAutoLink(w util.BufWriter, source []byte, node ast.
 		w.WriteString(ansiBlue)
 		w.Write(autoLink.Label(source))
 		w.WriteString(ansiReset)
+		r.restoreInlineContextStyle(w)
 		return ast.WalkSkipChildren, nil
 	}
 	return ast.WalkContinue, nil
@@ -253,6 +257,7 @@ func (r *ANSIRenderer) renderImage(w util.BufWriter, source []byte, node ast.Nod
 		w.Write(image.Destination)
 		w.WriteString(")")
 		w.WriteString(ansiReset)
+		r.restoreInlineContextStyle(w)
 	}
 	return ast.WalkContinue, nil
 }
@@ -389,6 +394,12 @@ func (r *ANSIRenderer) writeQuotePrefix(w util.BufWriter) {
 		w.WriteString(ansiDim)
 		w.WriteString("│ ")
 		w.WriteString(ansiReset)
+	}
+}
+
+func (r *ANSIRenderer) restoreInlineContextStyle(w util.BufWriter) {
+	if r.listDepth > 0 {
+		w.WriteString(ansiYellow)
 	}
 }
 
