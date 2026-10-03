@@ -23,7 +23,7 @@ func TestReorderCandidates_RespectsOrder(t *testing.T) {
 	}
 }
 
-func TestFindFilePath_CurrentDirOnlyAndRequireSection(t *testing.T) {
+func TestFindFilePath_ReadmeWithoutMarkersAndCurrentDirOnly(t *testing.T) {
 	tmp := t.TempDir()
 
 	// create nested directory structure
@@ -38,9 +38,9 @@ func TestFindFilePath_CurrentDirOnlyAndRequireSection(t *testing.T) {
 		t.Fatalf("failed to write root .dircard: %v", err)
 	}
 
-	// README.md in current dir with 'dircard' should be found first
+	// An ordinary README.md in the current directory is eligible.
 	readme := filepath.Join(sub, "README.md")
-	if err := os.WriteFile(readme, []byte("This file contains DirCard section"), 0o644); err != nil {
+	if err := os.WriteFile(readme, []byte("# Project\nDevelopment notes"), 0o644); err != nil {
 		t.Fatalf("failed to write README.md: %v", err)
 	}
 
@@ -52,9 +52,18 @@ func TestFindFilePath_CurrentDirOnlyAndRequireSection(t *testing.T) {
 		t.Fatalf("expected %s, got %s", readme, p)
 	}
 
-	// If README.md lacks the section, it should be skipped and root .dircard should be found
-	if err := os.WriteFile(readme, []byte("no matching section here"), 0o644); err != nil {
-		t.Fatalf("failed to overwrite README.md: %v", err)
+	// README without an extension is eligible as well.
+	plainReadme := filepath.Join(sub, "README")
+	if err := os.Rename(readme, plainReadme); err != nil {
+		t.Fatalf("failed to rename README.md: %v", err)
+	}
+	if p, err := FindFilePath(sub, 10, nil); err != nil || filepath.Clean(p) != filepath.Clean(plainReadme) {
+		t.Fatalf("expected to find %s, got %s, %v", plainReadme, p, err)
+	}
+
+	// Parent README files are skipped; the parent's dedicated file is used.
+	if err := os.Rename(plainReadme, filepath.Join(tmp, "sub", "README")); err != nil {
+		t.Fatalf("failed to move README to parent: %v", err)
 	}
 
 	p2, err := FindFilePath(sub, 10, nil)

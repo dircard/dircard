@@ -9,6 +9,7 @@ It is designed for people who move across many projects and want local context t
 ## Features
 
 - Show notes from the nearest `.dircard` in the current or parent directories.
+- Search order: `.dircard.md` → `.dircard` → `README.md` → `README`. README files are considered only in the current directory; no markers are required, and their contents use the normal line-range settings.
 - Limit output size, line range, and search depth.
 - JSON output support for scripting.
 - Shell integration for `bash`, `zsh`, and `pwsh`.

@@ -1,25 +1,22 @@
 package finder
 
 import (
-	"bufio"
 	"errors"
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 )
 
 type FileCandidate struct {
 	Name           string
 	CurrentDirOnly bool
-	RequireSection bool
 }
 
 var Candidates = []FileCandidate{
 	{Name: ".dircard.md"},
 	{Name: ".dircard"},
-	{Name: "README.md", CurrentDirOnly: true, RequireSection: true},
-	{Name: "README", CurrentDirOnly: true, RequireSection: true},
+	{Name: "README.md", CurrentDirOnly: true},
+	{Name: "README", CurrentDirOnly: true},
 }
 
 func ReorderCandidates(order []string) []FileCandidate {
@@ -73,15 +70,6 @@ func FindFilePath(startDir string, depthLimit int, candidates []FileCandidate) (
 			if !fileExists(p) {
 				continue
 			}
-			if c.RequireSection {
-				ok, err := hasDircardSection(p)
-				if err != nil {
-					return "", err
-				}
-				if !ok {
-					continue
-				}
-			}
 			return p, nil
 		}
 
@@ -105,22 +93,6 @@ func FindFilePath(startDir string, depthLimit int, candidates []FileCandidate) (
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
-}
-
-func hasDircardSection(path string) (bool, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return false, err
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		if strings.Contains(strings.ToLower(scanner.Text()), "dircard") {
-			return true, nil
-		}
-	}
-	return false, scanner.Err()
 }
 
 func Names(candidates []FileCandidate) []string {
