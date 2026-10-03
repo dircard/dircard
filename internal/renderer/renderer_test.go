@@ -115,6 +115,18 @@ func TestRenderMarkdownIncrementsOrderedListNumbers(t *testing.T) {
 	}
 }
 
+func TestRenderMarkdownKeepsOnlyIntentionalBlankLinesBetweenListItems(t *testing.T) {
+	got := ParseMarkdown("- one\n- two\n\n- three\n- four")
+	want := "・ " + ansiYellow + "one" + ansiReset + "\n" +
+		"・ " + ansiYellow + "two" + ansiReset + "\n\n" +
+		"・ " + ansiYellow + "three" + ansiReset + "\n" +
+		"・ " + ansiYellow + "four" + ansiReset
+
+	if got != want {
+		t.Fatalf("ParseMarkdown() = %q, want %q", got, want)
+	}
+}
+
 func codeBlockLine(value string) string {
 	return renderedCodeBlockLine(value, value)
 }
