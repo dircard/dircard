@@ -115,8 +115,7 @@ func (r *ANSIRenderer) renderParagraph(w util.BufWriter, source []byte, node ast
 		r.writeQuotePrefix(w)
 		return ast.WalkContinue, nil
 	}
-	if r.isTightListParagraph(node) {
-		w.WriteByte('\n')
+	if r.isListParagraph(node) {
 		return ast.WalkContinue, nil
 	}
 	w.WriteString("\n\n")
@@ -140,9 +139,12 @@ func (r *ANSIRenderer) renderList(w util.BufWriter, source []byte, node ast.Node
 }
 
 func (r *ANSIRenderer) renderListItem(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	listItem := node.(*ast.ListItem)
 	if entering {
+		if listItem.PreviousSibling() != nil && listItem.HasBlankPreviousLines() {
+			w.WriteByte('\n')
+		}
 		w.WriteString(strings.Repeat("  ", max(r.listDepth-1, 0)))
-		listItem := node.(*ast.ListItem)
 		parent := listItem.Parent()
 		if parent != nil {
 			if list, ok := parent.(*ast.List); ok {
@@ -156,9 +158,7 @@ func (r *ANSIRenderer) renderListItem(w util.BufWriter, source []byte, node ast.
 		w.WriteString(ansiYellow)
 	} else {
 		w.WriteString(ansiReset)
-		if _, ok := node.FirstChild().(*ast.TextBlock); ok {
-			w.WriteByte('\n')
-		}
+		w.WriteByte('\n')
 	}
 	return ast.WalkContinue, nil
 }
@@ -403,20 +403,9 @@ func (r *ANSIRenderer) restoreInlineContextStyle(w util.BufWriter) {
 	}
 }
 
-func (r *ANSIRenderer) isTightListParagraph(node ast.Node) bool {
-	parent := node.Parent()
-	if parent == nil {
-		return false
-	}
-	listItem, ok := parent.(*ast.ListItem)
-	if !ok {
-		return false
-	}
-	if listItem.Parent() == nil {
-		return false
-	}
-	list, ok := listItem.Parent().(*ast.List)
-	return ok && list.IsTight
+func (r *ANSIRenderer) isListParagraph(node ast.Node) bool {
+	_, ok := node.Parent().(*ast.ListItem)
+	return ok
 }
 
 func (r *ANSIRenderer) listItemNumber(item *ast.ListItem, list *ast.List) int {
