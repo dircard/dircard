@@ -9,7 +9,6 @@ It is designed for people who move across many projects and want local context t
 ## Features
 
 - Show notes from the nearest `.dircard` in the current or parent directories.
-- Search order: `.dircard.md` → `.dircard` → `README.md` → `README`. README files are considered only in the current directory; no markers are required, and their contents use the normal line-range settings.
 - Limit output size, line range, and search depth.
 - JSON output support for scripting.
 - Shell integration for `bash`, `zsh`, and `pwsh`.
@@ -54,6 +53,16 @@ cd your/project
 
 ## Commands
 
+### Create Notes
+
+```bash
+dircard init
+dircard init --skip
+dircard init --skip --path your/project
+```
+
+`dircard init` interactively selects a file type and creates a new file. `--skip` creates `.dircard`. An error is returned if the file already exists.
+
 ### Show notes
 
 ```bash
@@ -64,9 +73,10 @@ dircard show --json
 dircard show --depth 3 --start 10 --lines 20
 ```
 
-- `dircard show` searches for the nearest `.dircard` from the current directory upward.
+`dircard show` searches for notes from the current directory upward. In each directory, it checks `.dircard.md` → `.dircard` → `README.md` → `README`. README files are considered only in the current directory.
+
 - `--full` shows the full contents of the file.
-- `--path` shows the path to the `.dircard` file.
+- `--path` shows the path to the file found.
 - `--json` prints structured output for scripts.
 - `--depth`, `--start`, and `--lines` control search depth and output range.
 

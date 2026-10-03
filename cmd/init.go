@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dircard/dircard/internal/fileio"
 	"github.com/dircard/dircard/internal/finder"
-	"github.com/dircard/dircard/internal/marker"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -14,25 +14,16 @@ import (
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Create a .dircard file in the current directory",
-	Long:  `Creates a .dircard file in the current directory. Interactively choose a file type by default, or use --skip to skip the prompt.`,
+	Long:  `Creates a new notes file in the current directory. Interactively choose a file type by default, or use --skip to create .dircard. Returns an error if the file already exists.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		force, _ := cmd.Flags().GetBool("force")
 		path := resolveInitPath(cmd)
 
-		action, err := marker.CreateOrUpdate(path, force)
-		if err != nil {
+		if err := fileio.CreateFile(path); err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			os.Exit(1)
 		}
 
-		switch action {
-		case marker.ActionCreated:
-			fmt.Printf("Created %s\n", path)
-		case marker.ActionAppended:
-			fmt.Printf("Appended dircard markers to %s\n", path)
-		case marker.ActionUpdated:
-			fmt.Printf("Updated %s\n", path)
-		}
+		fmt.Printf("Created %s\n", path)
 	},
 }
 
@@ -40,7 +31,6 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	initCmd.Flags().StringP("path", "p", "", "Target directory path")
 	initCmd.Flags().BoolP("skip", "k", false, "Skip interactive selection and create .dircard directly")
-	initCmd.Flags().BoolP("force", "f", false, "Overwrite existing file (or append markers if target is README)")
 }
 
 // Path resolution helpers

@@ -9,7 +9,6 @@ Dircard は，`.dircard` ファイルに書かれたディレクトリノート�
 ## 特徴
 
 - カレントディレクトリまたは親ディレクトリから最も近い `.dircard` を探索して表示
-- 探索順は `.dircard.md` → `.dircard` → `README.md` → `README`．README系はカレントディレクトリのみを対象とし，マーカー不要で本文を通常の行範囲設定に従って表示
 - 出力サイズ，行範囲，探索深度を指定可能
 - スクリプト連携向けの JSON 出力
 - `bash`，`zsh`，`pwsh` のシェル統合
@@ -54,6 +53,16 @@ cd your/project
 
 ## コマンド
 
+### ノート作成
+
+```bash
+dircard init
+dircard init --skip
+dircard init --skip --path your/project
+```
+
+`dircard init` は対話的にファイル形式を選んで新規作成します．`--skip` は `.dircard` を作成します．既存ファイルがある場合はエラーになります．
+
 ### ノート表示
 
 ```bash
@@ -64,9 +73,10 @@ dircard show --json
 dircard show --depth 3 --start 10 --lines 20
 ```
 
-- `dircard show` はカレントディレクトリから親方向に最も近い `.dircard` を探索して表示します．
+`dircard show` はカレントディレクトリから親方向にノートを探索して表示します．各ディレクトリでは `.dircard.md` → `.dircard` → `README.md` → `README` の順で確認します．README系はカレントディレクトリのみが対象です．
+
 - `--full` はファイル全体を表示します．
-- `--path` は `.dircard` ファイルのパスを表示します．
+- `--path` は見つかったファイルのパスを表示します．
 - `--json` はスクリプト利用向けに JSON 形式で出力します．
 - `--depth`，`--start`，`--lines` で探索深度と表示範囲を制御できます．
 
