@@ -16,7 +16,6 @@ type FileCandidate struct {
 }
 
 var Candidates = []FileCandidate{
-	{Name: ".dircard.local", CurrentDirOnly: true},
 	{Name: ".dircard.md"},
 	{Name: ".dircard"},
 	{Name: "README.md", CurrentDirOnly: true, RequireSection: true},
