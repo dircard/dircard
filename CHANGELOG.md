@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-10-04
+
+### Changed
+- Display README contents directly
+- Remove `init --force` and preserve existing files
+
+### Fixed
+- Fix extra blank lines between list items
+
 ## [0.3.1] - 2026-07-21
 
 ### Fixed
@@ -43,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Infrastructure
 - Add goreleaser config and release workflow
 
+[0.3.2]: https://github.com/dircard/dircard/releases/tag/v0.3.2
 [0.3.1]: https://github.com/dircard/dircard/releases/tag/v0.3.1
 [0.3.0]: https://github.com/dircard/dircard/releases/tag/v0.3.0
 [0.2.0]: https://github.com/dircard/dircard/releases/tag/v0.2.0
